@@ -1,7 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-
 Class Ticket extends CI_Model {
   
   private $id;
@@ -24,16 +23,16 @@ Class Ticket extends CI_Model {
 
   public function getList()
   {
-    $user_id = 1;
-    $this->db->select('tickets.*,messages.message');
+    $user_id = 1; // Assuming a static user_id for demonstration
+    $this->db->select('tickets.*, messages.message');
     $this->db->from($this->table_name);
-    $this->db->join('messages', 'messages.id = tickets.last_reply','left');
-    $this->db->where('tickets.user_id',$user_id);
+    $this->db->join('messages', 'messages.id = tickets.last_reply', 'left');
+    $this->db->where('tickets.user_id', $user_id);
     $query = $this->db->get();
     return $query->result();
   }
   
-  public function add($title,$message)
+  public function add($title, $message)
   {
     $data = array(
       'date_created' => date('Y-m-d h:i:s'),
@@ -41,42 +40,42 @@ Class Ticket extends CI_Model {
       'status' => 'submitted',
       'last_reply' => null,
       'last_updated' => date('Y-m-d h:i:s'),
-      'user_id'=>1
+      'user_id' => 1 // Assuming a static user_id for demonstration
     );
     $this->db->insert($this->table_name, $data);
-    $ticket_id  = $this->db->insert_id();
+    $ticket_id = $this->db->insert_id();
 
     $data = array(
       'entity_id' => $ticket_id,
       'entity_type' => 'tickets',
       'title' => $title,
       'message' => $message,
-      'user_id' => 1
+      'user_id' => 1 // Assuming a static user_id for demonstration
     );
     $this->db->insert('messages', $data);
     $message_id = $this->db->insert_id();
 
-
-    $data = array(
-      'last_reply' => $message_id,
-    );
+    $data = array('last_reply' => $message_id);
     $this->db->where('id', $ticket_id);
     $this->db->update($this->table_name, $data);
-    
   }
-  
-  public function update()
+
+  public function update($id, $data)
   {
-    
+    $this->db->where('id', $id);
+    $this->db->update($this->table_name, $data);
   }
-  
-  public function get()
+
+  public function get($id)
   {
-    
+    $this->db->where('id', $id);
+    $query = $this->db->get($this->table_name);
+    return $query->row();
   }
-  
-  public function remove()
+
+  public function remove($id)
   {
-    
+    $this->db->where('id', $id);
+    $this->db->delete($this->table_name);
   }
 }
