@@ -1,25 +1,35 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-
-
 function sessionLogin($role)
 {
-  $_SESSION['logged'] = TRUE;
-  $_SESSION['role'] = $role;
+  $CI =& get_instance();
+  $CI->load->library('session');
+  
+  $CI->session->set_userdata('logged', TRUE);
+  $CI->session->set_userdata('role', $role);
 }
 
 function sessionLogout() 
 {
-  $_SESSION['logged'] = FALSE;
-  $_SESSION['role'] = NULL;
+  $CI =& get_instance();
+  $CI->load->library('session');
+  
+  $CI->session->unset_userdata('logged');
+  $CI->session->unset_userdata('role');
 }
 
 function isLoggedIn()
 {
-  return $_SESSION['logged'] === TRUE;
+  $CI =& get_instance();
+  $CI->load->library('session');
+
+  return $CI->session->userdata('logged') === TRUE;
 }
 
 function userRole()
 {
-  return $_SESSION['role'];
+  $CI =& get_instance();
+  $CI->load->library('session');
+
+  return $CI->session->userdata('role');
 }
