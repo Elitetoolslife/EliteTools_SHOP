@@ -1,11 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-
-Class Shell extends CI_Model {
+Class Seller_Item extends CI_Model {
   
   private $id;
-  private $table_name = 'shell';
+  private $table_name = 'seller_items';
   
   public function __construct()
   {
@@ -22,33 +21,69 @@ Class Shell extends CI_Model {
     return $this->id;
   }
   
-  public function add()
+  public function add($name, $type, $price, $description, $seller_id)
   {
-    
+    // Basic Validation
+    if (empty($name) || empty($type) || empty($price) || empty($seller_id)) {
+        // Handle the error appropriately
+        return false;
+    }
+
+    $data = array(
+      'item_name' => $name,
+      'item_price' => $price,
+      'item_type' => $type,
+      'item_description' => $description,
+      'seller_id' => $seller_id
+    );
+    $this->db->insert($this->table_name, $data);
+    return $this->db->insert_id(); // Return the newly created ID
   }
   
-  public function update()
+  public function update($id, $name, $type, $price, $description, $seller_id)
   {
-    
+    // Basic Validation
+    if (empty($id) || empty($name) || empty($type) || empty($price) || empty($seller_id)) {
+        // Handle the error appropriately
+        return false;
+    }
+
+    $data = array(
+      'item_name' => $name,
+      'item_price' => $price,
+      'item_type' => $type,
+      'item_description' => $description,
+      'seller_id' => $seller_id
+    );
+    $this->db->where('id', $id);
+    $this->db->update($this->table_name, $data);
+    return $this->db->affected_rows(); // Return the number of rows affected
   }
   
-  public function get()
+  public function get($id = FALSE)
   {
-	
+    if ($id === FALSE) {
+      $query = $this->db->get($this->table_name);
+      return $query->result();
+    }
+
+    $this->db->where('id', $id);
+    $query = $this->db->get($this->table_name);
+    return $query->row();
   }
   
-  public function remove()
+  public function remove($id)
   {
-    
+    $this->db->where('id', $id);
+    $this->db->delete($this->table_name);
   }
   
-  
-	public function getList()
-	{
-		$this->db->select('*');
+  public function getList($seller_id)
+  {
+    $this->db->select('*');
     $this->db->from($this->table_name);
-    $this->db->join('user', 'user.id = shell.seller_id');
+    $this->db->where('seller_id', $seller_id);
     $query = $this->db->get();
     return $query->result();
-	}
+  }
 }
