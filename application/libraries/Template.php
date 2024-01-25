@@ -1,38 +1,44 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-
-/**
-    Name    : Template Engine Class
-    Author  : Rachid Aachich
-    Project : Olux.io Clone
-**/
-
-
 class Template {
-
   private $var_holder = array();
   private $rep_holder = array();
-  private $base_url = 'http://localhost/oluxclone';
-  private $use_extension = FALSE;
-  private $extension = 'html';
-  private $views_path = 'application/views/';
-  private $header_template = 'header';
-  private $footer_template = 'footer';
+  private $base_url;
+  private $use_extension;
+  private $extension;
+  private $views_path;
+  private $header_template;
+  private $footer_template;
   
   public function __construct()
   {
-  
+    $this->base_url = 'http://localhost/xbasetools';
+    $this->use_extension = FALSE;
+    $this->extension = 'html';
+    $this->views_path = 'application/views/';
+    $this->header_template = 'header';
+    $this->footer_template = 'footer';
+
+    // Load CI instance and any libraries/helpers you need
+    $CI =& get_instance();
+    $CI->load->helper('url'); // For example, loading the URL helper
   }
-	public function setViewsPath($path)
-	{
-		$this->views_path = $path;
-	}
-	
-	public function getViewsPath()
-	{
-		return $views_path;
-	}
+
+  // ... (rest of the class methods)
+
+}
+
+
+  public function setViewsPath($path)
+  {
+    $this->views_path = $path;
+  }
+  
+  public function getViewsPath()
+  {
+    return $this->views_path;
+  }
     
   public function getExtension()
   {
@@ -51,18 +57,19 @@ class Template {
   
   public function setUseExtension($use)
   {
-    $this->use_extension = (boolean)$use;
+    $this->use_extension = (boolean) $use;
   }
   
   private function fill($template)
   {
     $template = $this->views_path . '/' . $template;
-    if($this->use_extension == FALSE)
-      $template = $template . '.' . $this->extension;
+    if($this->use_extension)
+      $template .= '.' . $this->extension;
     
-    if(!file_exists($template))
-      die('Template file could not be found : ' . $template);
-    
+    if(!file_exists($template)) {
+      throw new Exception('Template file could not be found: ' . $template);
+    }
+
     $data = file_get_contents($template);
     $current_url = "http" . (($_SERVER['SERVER_PORT'] == 443) ? "s://" : "://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     $data = str_replace('{CURRENT_URL}', $current_url, $data);
@@ -71,12 +78,12 @@ class Template {
     foreach($this->var_holder as $key => $value)
     {
       $var = '{' . $key . '}';
-      $data = str_replace($var , $value , $data);
+      $data = str_replace($var, $value, $data);
     }
     
     foreach($this->rep_holder as $key => $value)
     {
-      $data = str_replace($key , $value , $data);
+      $data = str_replace($key, $value, $data);
     }
     
     return $data;
@@ -88,7 +95,7 @@ class Template {
     $this->rep_holder = array();
   }
   
-  public function assign($var , $value)
+  public function assign($var, $value)
   {
     $this->var_holder[$var] = $value;
   }
@@ -97,12 +104,12 @@ class Template {
   {
     foreach($object as $key => $value)
     {
-      if( !in_array($key, $exclude) )
+      if(!in_array($key, $exclude))
         $this->assign($key, $value);
     }
   }
   
-  public function replace($str , $pattern)
+  public function replace($str, $pattern)
   {
     $this->rep_holder[$str] = $pattern;
   }
@@ -134,4 +141,5 @@ class Template {
   }
  
 }
+
 # END OF CLASS: Template.php
