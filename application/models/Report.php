@@ -1,7 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-
 Class Report extends CI_Model {
   
   private $id;
@@ -24,19 +23,18 @@ Class Report extends CI_Model {
 
   public function getList()
   {
-    $user_id = 1;
-    $this->db->select('reports.*,messages.message,user.name seller, orders.item_type');
+    $user_id = 1; // Assuming a static user_id for demonstration
+    $this->db->select('reports.*, messages.message, user.name as seller, orders.item_type');
     $this->db->from($this->table_name);
-    $this->db->join('messages', 'messages.id = reports.last_reply','left');
-    $this->db->join('orders', 'orders.id = reports.order_id','left');
-    $this->db->join('user', 'user.id = orders.seller_id','left');
-    
-    $this->db->where('reports.user_id',$user_id);
+    $this->db->join('messages', 'messages.id = reports.last_reply', 'left');
+    $this->db->join('orders', 'orders.id = reports.order_id', 'left');
+    $this->db->join('user', 'user.id = orders.seller_id', 'left');
+    $this->db->where('reports.user_id', $user_id);
     $query = $this->db->get();
     return $query->result();
   }
   
-  public function add($order_id,$title,$message)
+  public function add($order_id, $title, $message)
   {
     $data = array(
       'date_created' => date('Y-m-d h:i:s'),
@@ -44,43 +42,44 @@ Class Report extends CI_Model {
       'status' => 'submitted',
       'last_reply' => null,
       'last_updated' => date('Y-m-d h:i:s'),
-      'user_id'=>1
+      'user_id' => 1 // Assuming a static user_id for demonstration
     );
     $this->db->insert($this->table_name, $data);
-    $report_id  = $this->db->insert_id();
+    $report_id = $this->db->insert_id();
 
     $data = array(
       'entity_id' => $report_id,
       'entity_type' => 'reports',
       'title' => $title,
       'message' => $message,
-      'user_id' => 1
+      'user_id' => 1 // Assuming a static user_id for demonstration
     );
     $this->db->insert('messages', $data);
     $message_id = $this->db->insert_id();
 
-
-    $data = array(
-      'last_reply' => $message_id,
-    );
+    $data = array('last_reply' => $message_id);
     $this->db->where('id', $report_id);
     $this->db->update($this->table_name, $data);
-    
-  }
-  
-  public function update()
-  {
-    
-  }
-  
-  public function get()
-  {
-    
-  }
-  
-  public function remove()
-  {
-    
   }
 
+  public function update($id, $data)
+  {
+    $this->db->where('id', $id);
+    $this->db->update($this->table_name, $data);
+  }
+  
+  public function get($id)
+  {
+    $this->db->where('id', $id);
+    $query = $this->db->get($this->table_name);
+    return $query->row();
+  }
+
+  public function remove($id)
+  {
+    $this->db->where('id', $id);
+    $this->db->delete($this->table_name);
+  }
+
+  // Additional methods can be added here as needed.
 }
