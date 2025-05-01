@@ -1,9 +1,607 @@
+ <?php
+use App\Models\Tickets;
+
+// Fetch & categorize
+$tickets    = new Tickets();
+$all        = $tickets->getAllTickets();
+$open       = $tickets->getTicketsByStatus(0);
+$inProgress = $tickets->getTicketsByStatus(1);
+$resolved   = $tickets->getTicketsByStatus(2);
+
+// Counts
+$counts = [
+    'all'      => count($all),
+    'open'     => count($open),
+    'inprog'   => count($inProgress),
+    'resolved' => count($resolved),
+];
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — <?= htmlspecialchars($page_title, ENT_QUOTES) ?></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="csrf-token" content="<?= App\Helpers\CsrfHelper::generateToken(); ?>">
+  <meta name="bearer-token" content="<?= htmlspecialchars($bearer_token); ?>">
+  <meta name="theme-color" content="#0d6efd"> <!-- Mobile browser theme -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Elitetools – Admin Tickets</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome (for icons) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- AOS Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <!-- Custom Styles (Make sure this is responsive) -->
+  <link href="<?= App\Helpers\AssetsHelper::asset('css/admin.css'); ?>" rel="stylesheet">
+</head>
+
+  <!-- Favicons & Touch Icons -->
+  <link rel="shortcut icon" href="https://waxa.pw/assets/media/favicons/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://waxa.pw/assets/media/favicons/favicon-192x192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://waxa.pw/assets/media/favicons/apple-touch-icon-180x180.png">
+
+  <!-- Core CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" id="css-main" href="https://waxa.pw/assets/css/oneui.min.css">
+
+  <!-- Plugin CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/datatables-bs5/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/datatables-buttons-bs5/css/buttons.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/datatables-responsive-bs5/css/responsive.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/ion-rangeslider/css/ion.rangeSlider.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/dropzone/min/dropzone.min.css">
+  <link rel="stylesheet" href="https://waxa.pw/assets/js/plugins/flatpickr/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+<!-- JS: Bootstrap, jQuery, DataTables, AOS, OneUI Helpers, SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="/assets/js/oneui.app.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  /* —— Reset & Global —— */
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+    overflow: hidden; /* prevent body scroll */
+  }
+
+  body.light-mode {
+    background: #f9fafc;
+    color: #212529;
+  }
+
+  body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+  }
+
+  /* —— Header —— */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #2c2c3a;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1040;
+    border-bottom: 1px solid #444;
+  }
+
+  .header .btn {
+    border-radius: 30px;
+  }
+
+  .header a,
+  .header .nav-link,
+  .header .navbar-brand {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .header a:hover,
+  .header .nav-link:hover {
+    color: #f8f9fa;
+  }
+
+  /* —— Sidebar —— */
+  #admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: #1e1e2f;
+    color: #fff;
+    z-index: 1030;
+    transition: transform .3s ease;
+  }
+
+  #admin-sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+
+  #admin-sidebar .sidebar-header {
+    background: #2c2c3a;
+  }
+
+  #admin-sidebar .nav-link {
+    color: #cfcfd6;
+    padding: .75rem 1rem;
+    border-radius: .25rem;
+    transition: background .2s;
+  }
+
+  #admin-sidebar .nav-link.active,
+  #admin-sidebar .nav-link:hover {
+    background: #343a40;
+    color: #fff;
+  }
+
+  /* —— Main Content —— */
+  .main-content {
+    position: absolute;
+    top: 60px; /* height of header */
+    bottom: 0;
+    left: 260px; /* width of sidebar */
+    right: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
+    transition: left .3s ease;
+  }
+
+  .main-content.collapsed {
+    left: 0;
+  }
+
+  /* —— Cards —— */
+  .card {
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e0f7fa, #f8f9fa);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  body.dark-mode .card {
+    background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
+    color: #e0e0e0;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  }
+
+  .card h5 {
+    font-weight: 600;
+    color: #0d6efd;
+  }
+
+  /* —— Navigation Pills —— */
+  .nav-pills .nav-link {
+    border-radius: 50px;
+    padding: .5rem 1rem;
+    transition: background .3s, box-shadow .3s;
+  }
+
+  .nav-pills .nav-link.active {
+    background: #0d6efd;
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+  }
+
+  /* —— Table —— */
+  .table-responsive {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive table {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .table thead {
+    background: #e3f2fd;
+    color: #0d47a1;
+  }
+
+  .table td,
+  .table th {
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .table th.text-center {
+    text-align: center;
+  }
+
+  tr.status-0 {
+    background: #fff3cd; /* Open */
+  }
+
+  tr.status-1 {
+    background: #cff4fc; /* In Progress */
+  }
+
+  tr.status-2 {
+    background: #d1e7dd; /* Resolved */
+  }
+
+  /* —— Buttons —— */
+  .btn {
+    border-radius: 20px;
+    transition: transform .2s, box-shadow .2s;
+  }
+
+  .btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* —— Responsive Adjustments —— */
+  @media (max-width:768px) {
+    #admin-sidebar {
+      transform: translateX(-100%);
+    }
+
+    #admin-sidebar.collapsed {
+      transform: translateX(0);
+    }
+
+    .main-content {
+      left: 0;
+    }
+
+    .main-content.collapsed {
+      left: 260px;
+    }
+  }
+
+  @media (max-width:576px) {
+    .table-sm th,
+    .table-sm td {
+      padding: .4rem;
+      font-size: .8rem;
+    }
+
+    .d-sm-table-cell {
+      display: none !important;
+    }
+  }
+
+</style>
+
+<body class="light-mode">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/assets/js/oneui.app.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Sidebar toggle
+    document.getElementById('sidebarToggle').addEventListener('click', ()=>{
+      document.getElementById('admin-sidebar').classList.toggle('collapsed');
+      document.querySelector('.main-content').classList.toggle('collapsed');
+    });
+    // Theme toggle
+    document.getElementById('toggleTheme').addEventListener('click', ()=>{
+      document.body.classList.toggle('dark-mode');
+      document.body.classList.toggle('light-mode');
+    });
+  });
+</script>
+
+<div class="d-flex">
+
+      <div class="header mb-4">
+      <button id="sidebarToggle" class="btn btn-primary d-md-none">
+        <i class="fas fa-bars"></i>
+      </button>
+
+        <button id="toggleTheme" class="btn btn-outline-light btn-sm">
+          <i class="fa fa-moon"></i> Theme
+        </button>
+      </div><!-- Sidebar -->
+
+<nav id="admin-sidebar" class="d-flex flex-column">
+  <div class="sidebar-header d-flex align-items-center justify-content-between px-3 py-3 border-bottom border-secondary">
+    <a href="<?= App\Helpers\AssetsHelper::url('admin/'); ?>"
+       class="text-white fw-bold fs-5 text-decoration-none">
+      <i class="fa fa-cogs me-2"></i> Admin Panel
+    </a>
+    <button id="sidebarCloseMobile" class="btn btn-sm btn-alt-secondary d-lg-none text-white">
+      <i class="fa fa-fw fa-times"></i>
+    </button>
+  </div>
+
+  <div class="flex-grow-1 overflow-auto px-2 pt-3">
+    <ul class="nav flex-column fs-sm">
+
+      <!-- Dashboard -->
+      <li class="nav-item mb-1">
+        <a href="<?= App\Helpers\AssetsHelper::url('admin/'); ?>"
+           class="nav-link d-flex align-items-center rounded <?= $activePage==='dashboard' ? 'active' : '' ?>">
+          <i class="fa fa-chart-line me-2 text-primary"></i> Dashboard
+        </a>
+      </li>
+
+      <!-- Account -->
+      <li class="mt-4 mb-2 text-uppercase text-muted small px-3">Account</li>
+      <li class="nav-item mb-1">
+        <a href="<?= App\Helpers\AssetsHelper::url('admin/profile'); ?>"
+           class="nav-link d-flex align-items-center rounded <?= $activePage==='profile' ? 'active' : '' ?>">
+          <i class="fa fa-user me-2 text-secondary"></i> Profile
+        </a>
+      </li>
+
+      <!-- Reports -->
+      <li class="mt-4 mb-2 text-uppercase text-muted small px-3">Reports</li>
+      <li class="nav-item mb-1">
+        <a href="<?= App\Helpers\AssetsHelper::url('admin/reports'); ?>"
+           class="nav-link d-flex align-items-center rounded <?= $activePage==='reports' ? 'active' : '' ?>">
+          <i class="fa fa-flag me-2 text-warning"></i> All Reports
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a href="<?= App\Helpers\AssetsHelper::url('admin/reports?status=pending'); ?>"
+           class="nav-link d-flex align-items-center rounded <?= $activePage==='reports.status=pending' ? 'active' : '' ?>">
+          <i class="fa fa-flag-checkered me-2 text-warning"></i> Pending Reports
+          <span class="badge bg-warning ms-auto"><?= $counts['open'] ?? 0 ?></span>
+        </a>
+      </li>
+
+      <!-- Tickets -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= strpos($activePage,'tickets')===0?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseTickets"
+           aria-expanded="<?= strpos($activePage,'tickets')===0?'true':'false' ?>">
+          <span><i class="fa fa-ticket-alt me-2 text-warning"></i> Tickets</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseTickets" class="collapse <?= strpos($activePage,'tickets')===0?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/tickets?tab=open') ?>"
+                 class="nav-link <?= $activeTab==='open'?'active':'' ?>">
+                Open <span class="badge bg-warning ms-auto"><?= $counts['open'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/tickets?tab=all') ?>"
+                 class="nav-link <?= $activeTab==='all'?'active':'' ?>">
+                All <span class="badge bg-primary ms-auto"><?= $counts['all'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/tickets?tab=inprog') ?>"
+                 class="nav-link <?= $activeTab==='inprog'?'active':'' ?>">
+                In Progress <span class="badge bg-info ms-auto"><?= $counts['inprog'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/tickets?tab=resolved') ?>"
+                 class="nav-link <?= $activeTab==='resolved'?'active':'' ?>">
+                Resolved <span class="badge bg-success ms-auto"><?= $counts['resolved'] ?? 0 ?></span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Users -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= strpos($activePage,'users')===0?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseUsers"
+           aria-expanded="<?= strpos($activePage,'users')===0?'true':'false' ?>">
+          <span><i class="fa fa-users me-2 text-info"></i> Users</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseUsers" class="collapse <?= strpos($activePage,'users')===0?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <?php foreach (['pending'=>'Pending','active'=>'Approved','rejected'=>'Rejected','all'=>'All'] as $tab=>$label): ?>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url("admin/users?tab={$tab}") ?>"
+                 class="nav-link <?= $activeTab===$tab?'active':'' ?>">
+                <?= $label ?> <span class="badge bg-<?= $tab==='pending'?'warning':($tab==='active'?'success':($tab==='rejected'?'danger':'primary')) ?> ms-auto"><?= $counts[$tab] ?? 0 ?></span>
+              </a>
+            </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Orders & Sales -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= in_array($activePage,['orders','sales'])?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseOrders"
+           aria-expanded="<?= in_array($activePage,['orders','sales'])?'true':'false' ?>">
+          <span><i class="fa fa-shopping-bag me-2 text-success"></i> Orders & Sales</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseOrders" class="collapse <?= in_array($activePage,['orders','sales'])?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/orders'); ?>"
+                 class="nav-link <?= $activePage==='orders'?'active':'' ?>">
+                Orders <span class="badge bg-primary ms-auto"><?= $counts['orders'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/sales'); ?>"
+                 class="nav-link <?= $activePage==='sales'?'active':'' ?>">
+                Sales <span class="badge bg-success ms-auto"><?= $counts['sales'] ?? 0 ?></span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Finance -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= in_array($activePage,['financial','payments','withdrawals','withdraw.approval'])?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseFinance"
+           aria-expanded="<?= in_array($activePage,['financial','payments','withdrawals','withdraw.approval'])?'true':'false' ?>">
+          <span><i class="fa fa-chart-area me-2 text-success"></i> Finance</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseFinance" class="collapse <?= in_array($activePage,['financial','payments','withdrawals','withdraw.approval'])?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/status'); ?>"
+                 class="nav-link <?= $activePage==='financial'?'active':'' ?>">Status</a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/payments'); ?>"
+                 class="nav-link <?= $activePage==='payments'?'active':'' ?>">
+                Payments <span class="badge bg-info ms-auto"><?= $counts['payments'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/withdrawals'); ?>"
+                 class="nav-link <?= $activePage==='withdrawals'?'active':'' ?>">
+                Withdrawals <span class="badge bg-secondary ms-auto"><?= $counts['withdrawals'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/withdrawals/approval'); ?>"
+                 class="nav-link <?= $activePage==='withdraw.approval'?'active':'' ?>">
+                Withdraw Approval <span class="badge bg-warning ms-auto"><?= $counts['withdrawApproval'] ?? 0 ?></span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- News -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= in_array($activePage,['news','news.add'])?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseNews"
+           aria-expanded="<?= in_array($activePage,['news','news.add'])?'true':'false' ?>">
+          <span><i class="fa fa-newspaper me-2 text-primary"></i> News</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseNews" class="collapse <?= in_array($activePage,['news','news.add'])?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/news'); ?>"
+                 class="nav-link <?= $activePage==='news'?'active':'' ?>">
+                All News <span class="badge bg-primary ms-auto"><?= $counts['news'] ?? 0 ?></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/news/add'); ?>"
+                 class="nav-link <?= $activePage==='news.add'?'active':'' ?>">
+                Add News
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Tools & Settings -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= in_array($activePage,['tools.visualize','settings'])?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseTools"
+           aria-expanded="<?= in_array($activePage,['tools.visualize','settings'])?'true':'false' ?>">
+          <span><i class="fa fa-cog me-2"></i> Tools & Settings</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseTools" class="collapse <?= in_array($activePage,['tools.visualize','settings'])?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/tools/visualize'); ?>"
+                 class="nav-link <?= $activePage==='tools.visualize'?'active':'' ?>">Visualize Tools</a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/settings'); ?>"
+                 class="nav-link <?= $activePage==='settings'?'active':'' ?>">Settings</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Shop -->
+      <li class="nav-item mt-4">
+        <a class="nav-link d-flex justify-content-between align-items-center <?= in_array($activePage,['shop.dashboard','shop.brand'])?'':'collapsed' ?>"
+           data-bs-toggle="collapse" href="#collapseShop"
+           aria-expanded="<?= in_array($activePage,['shop.dashboard','shop.brand'])?'true':'false' ?>">
+          <span><i class="fa fa-chart-pie me-2"></i> Shop</span>
+          <i class="fa fa-chevron-down"></i>
+        </a>
+        <div id="collapseShop" class="collapse <?= in_array($activePage,['shop.dashboard','shop.brand'])?'show':'' ?>">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('elitetools.life'); ?>"
+                 class="nav-link <?= $activePage==='shop.dashboard'?'active':'' ?>">Marketplace</a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= App\Helpers\AssetsHelper::url('admin/shop/brand'); ?>"
+                 class="nav-link <?= $activePage==='shop.brand'?'active':'' ?>">Brand</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Logout -->
+      <li class="nav-item mt-4">
+        <a href="<?= App\Helpers\AssetsHelper::url('logout'); ?>"
+           class="nav-link d-flex align-items-center rounded text-white">
+          <i class="fa fa-sign-out-alt me-2 text-danger"></i> Logout
+        </a>
+      </li>
+
+    </ul>
+  </div>
+</nav>
+  </nav>   
+
+   <main id="main-container">
+     <div class="bg-body-light">
+<div class="content content-full">
+        <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center py-2">
+                     </div>
+                    </div>
+                </div>
+<!-- END Main Navigation -->
+            </div>
+           </div>
+        </div>
+
+<main id="main-container">
+    <div class="content content-full">      </div>
+
+      </div>  <title>Admin — <?= htmlspecialchars($page_title, ENT_QUOTES) ?></title>
 
   <!-- Tailwind CSS (alternative modern approach) -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
